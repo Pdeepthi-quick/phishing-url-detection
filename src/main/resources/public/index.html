@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Phishing URL Scanner</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* ================= GLOBAL STYLE ================= */
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top, #0d1b2a, #000814);
+      font-family: "Inter", sans-serif;
+      color: #e0e6ed;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      font-family: "Orbitron", sans-serif;
+      text-align: center;
+      font-size: 2.6rem;
+      margin-top: 2rem;
+      letter-spacing: 3px;
+      color: #00eaff;
+      text-shadow: 0 0 12px rgba(0, 255, 255, 0.7);
+    }
+
+    /* ================= BACKGROUND GRID ================= */
+    .cyber-grid {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background-image:
+        linear-gradient(#00eaff15 1px, transparent 1px),
+        linear-gradient(90deg, #00eaff10 1px, transparent 1px);
+      background-size: 40px 40px;
+      animation: moveGrid 20s linear infinite;
+      z-index: -1;
+    }
+
+    @keyframes moveGrid {
+      from { background-position: 0 0; }
+      to { background-position: 40px 40px; }
+    }
+
+    /* ================= MAIN CARD ================= */
+    .scanner-card {
+      margin: 3rem auto;
+      width: 90%;
+      max-width: 650px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 2rem;
+      backdrop-filter: blur(15px);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.15);
+    }
+
+    label {
+      font-size: 1rem;
+      letter-spacing: 1px;
+      font-weight: 600;
+      color: #9ee7ff;
+    }
+
+    /* ================= INPUT ================= */
+    #urlInput {
+      width: 100%;
+      padding: 15px;
+      margin-top: 10px;
+      font-size: 1rem;
+      border: 2px solid #00eaff70;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #eaffff;
+      outline: none;
+      transition: 0.3s;
+    }
+
+    #urlInput:focus {
+      border-color: #00eaff;
+      box-shadow: 0 0 10px #00eaff80;
+    }
+
+    /* ================= BUTTON ================= */
+    #checkBtn {
+      margin-top: 1.4rem;
+      width: 100%;
+      padding: 14px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      background: linear-gradient(90deg, #00eaff, #0077ff);
+      color: #001219;
+      font-weight: 700;
+      transition: 0.25s;
+      font-family: "Orbitron", sans-serif;
+    }
+
+    #checkBtn:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 12px #00eaffaa;
+    }
+
+    /* ================= RESULT BOX ================= */
+    #result {
+      margin-top: 1.8rem;
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: 600;
+      padding: 1rem;
+      border-radius: 10px;
+      min-height: 20px;
+    }
+
+    .safe { color: #00ffa6; text-shadow: 0 0 10px #00ffa699; }
+    .phishing { color: #ff4b4b; text-shadow: 0 0 10px #ff4b4b99; }
+
+    /* ================= SCAN ANIMATION ================= */
+    .scan-line {
+      position: fixed;
+      top: -100%;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: #00eaff;
+      box-shadow: 0 0 20px #00eaff;
+      animation: scanMove 2.5s linear infinite;
+      z-index: -1;
+    }
+
+    @keyframes scanMove {
+      from { top: -10%; }
+      to { top: 110%; }
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="cyber-grid"></div>
+  <div class="scan-line"></div>
+
+  <h1>PHISHING URL SCANNER</h1>
+
+  <div class="scanner-card">
+    <label for="urlInput">Enter URL</label>
+    <input id="urlInput" type="text" placeholder="https://example.com"/>
+
+    <button id="checkBtn">SCAN NOW</button>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    document.getElementById("checkBtn").addEventListener("click", async () => {
+      const url = document.getElementById("urlInput").value.trim();
+      const resultEl = document.getElementById("result");
+
+      if (!url) {
+        resultEl.textContent = "❗ Please enter a valid URL";
+        resultEl.className = "";
+        return;
+      }
+
+      resultEl.textContent = "🔍 Scanning...";
+      resultEl.className = "";
+
+      try {
+        const response = await fetch("/api/check?url=" + encodeURIComponent(url));
+        const data = await response.json();
+
+        if (data.status === "success") {
+          if (data.message.includes("Phishing")) {
+            resultEl.textContent = "⚠️ PHISHING URL DETECTED";
+            resultEl.className = "phishing";
+          } else {
+            resultEl.textContent = "✔️ SAFE — LEGITIMATE URL";
+            resultEl.className = "safe";
+          }
+        } else {
+          resultEl.textContent = "Error: " + data.message;
+        }
+
+      } catch (err) {
+        resultEl.textContent = "Request failed: " + err.message;
+      }
+    });
+  </script>
+
+</body>
+</html>
